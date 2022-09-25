@@ -1,0 +1,20 @@
+{
+  "name": "Interconnect",
+  "tree": {
+    "$className": "DataModel",
+
+    "ServerStorage": {
+      "HeavyFramework": {
+        "$path": "src",
+        
+        "HeavyFramework": {
+          "$path": ".framework"
+          
+        }
+      }
+      
+    }
+    
+    
+  }
+}

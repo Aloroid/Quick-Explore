@@ -1,0 +1,11 @@
+{
+	"files.exclude": {
+		".gitignore": true,
+		"LICENSE": true,
+		"default.project.json": true,
+		"README.md": true,
+		"sourcemap.json": true,
+		"wally.lock": true,
+		".gitattributes": true
+	}
+}

@@ -1,0 +1,96 @@
+{
+	// Place your interconnect-components workspace snippets here. Each snippet is defined under a snippet name and has a scope, prefix, body and 
+	// description. Add comma separated ids of the languages where the snippet is applicable in the scope field. If scope 
+	// is left empty or omitted, the snippet gets applied to all languages. The prefix is what is 
+	// used to trigger the snippet and the body will be expanded and inserted. Possible variables are: 
+	// $1, $2 for tab stops, $0 for the final cursor position, and ${1:label}, ${2:another} for placeholders. 
+	// Placeholders with the same ids are connected.
+	// Example:
+	// "Print to console": {
+	// 	"scope": "javascript,typescript",
+	// 	"prefix": "log",
+	// 	"body": [
+	// 		"console.log('$1');",
+	// 		"$2"
+	// 	],
+	// 	"description": "Log output to console"
+	// },
+	
+	"FusionComponent": {
+		"prefix": "fusioncomponent",
+		
+		"body": [
+			"--[[",
+			"\t${1:$TM_FILENAME_BASE};",
+			"\t",
+			"]]",
+			"",
+			"local Packages = script.Parent.Parent.Parent",
+			"local Components = script.Parent",
+			"",
+			"local Fusion = require(Packages.Fusion)",
+			"local Util = require(Packages.FusionUtil)",
+			"",
+			"local Theme = Util.Theme",
+			"local unwrap = Util.unwrap",
+			"local stripProps = Util.stripProps",
+			"",
+			"local New = Fusion.New",
+			"local Value = Fusion.Value",
+			"local Computed = Fusion.Computed",
+			"local Children = Fusion.Children",
+			"local Hydrate = Fusion.Hydrate",
+			"",
+			"local COMPONENT_ONLY_PROPERTIES = {",
+			"\t",
+			"\t",
+			"}",
+			"",
+			"export type ${1:$TM_FILENAME_BASE} = {",
+			"\t",
+			"\t",
+			"\t[any]: any",
+			"}",
+			"",
+			"local function ${1:$TM_FILENAME_BASE}(props: ${1:$TM_FILENAME_BASE})",
+			"\t",
+			"\tlocal $1 = $0",
+			"\t",
+			"\treturn Hydrate(${1:$TM_FILENAME_BASE/[A-Z]/[a-z]/g})(stripProps(props, COMPONENT_ONLY_PROPERTIES))",
+			"end",
+			"",
+			"return ${1:$TM_FILENAME_BASE}"
+		]
+		
+	},
+	
+	"Story": {
+		"prefix": "story",
+		
+		"body": [
+			"local Package = script.Parent.Parent.Parent",
+			"local Components = script.Parent.Parent.Components",
+			"",
+			"local Fusion = require(Package.Fusion)",
+			"local $1 = require(Components.$1)",
+			"",
+			"local Children = Fusion.Children",
+			"",
+			"return function(target)",
+			"\t",
+			"\tlocal object = $1 {",
+			"\t\tParent = target,",
+			"\t\t",
+			"\t\t$0",
+			"\t}",
+			"\t",
+			"\treturn function()",
+			"\t\tobject:Destroy()",
+			"\t\t",
+			"\tend",
+			"end"
+			
+		]
+		
+	}
+}
