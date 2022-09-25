@@ -137,6 +137,10 @@ local function InstanceTree(props: InstanceTree)
 		local children = element:GetChildren()
 		local currentPadding = padding[element] or 0
 		
+		table.sort(children, function(a, b)
+			return a.ClassName < b.ClassName
+		end)
+		
 		if willExpand == true or expanded[element] == nil and willExpand ~= false then
 			
 			-- Moves all the elements in the InstanceTree up so that we have enough room to insert the elements
