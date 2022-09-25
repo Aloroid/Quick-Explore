@@ -36,7 +36,8 @@ FALLBACK.Name = "FALLBACK, DON'T LOOK"
 local COMPONENT_ONLY_PROPERTIES = {
 	"Instances",
 	"MultipleSelections",
-	"Selected"
+	"Selected",
+	"OnRightClick"
 	
 }
 
@@ -45,6 +46,8 @@ export type InstanceTree = {
 	Instances: {Instance},
 	MultipleSelections: Fusion.CanBeState<boolean>?,
 	Selected: Fusion.Value<{Instance?}>?,
+	
+	OnRightClick: ( () -> nil )?,
 	
 	[any]: any
 }
@@ -57,6 +60,7 @@ local function InstanceTree(props: InstanceTree)
 	local renderedElements = Value(table.clone(props.Instances))
 	local expandedInstanceTree = Value({})
 	local paddingInstanceTree = Value({})
+	local update = Value()
 	local isControlDown = false
 	local isShiftDown = false
 	
@@ -144,7 +148,8 @@ local function InstanceTree(props: InstanceTree)
 				padding[child] = currentPadding + 1
 				
 				if expanded[child] then
-					expand(table.find(InstanceTree, child, index), true)
+					local childIndex = table.find(InstanceTree, child, index)
+					expand(childIndex, true)
 					
 				end
 			end
@@ -157,6 +162,17 @@ local function InstanceTree(props: InstanceTree)
 			-- Let's first figure out the last child
 			local lastChild = children[#children]
 			local lastChildIndex = table.find(InstanceTree, lastChild, startIndex)
+			-- Figure out the last child by cycling through the children.
+			
+			for _, child in children do
+				local index = table.find(InstanceTree, child, startIndex)
+				if index then
+					lastChild = child
+					lastChildIndex = index
+				end
+				
+			end
+			
 			local lastIndex = lastChildIndex
 			
 			if expanded[lastChildIndex] then
@@ -189,6 +205,32 @@ local function InstanceTree(props: InstanceTree)
 		
 	end
 	
+	for _, keyInstance: Instance in props.Instances do
+		keyInstance.DescendantAdded:Connect(function(inst)
+			local rendered = unwrap(renderedElements)
+			local expanded = unwrap(expandedInstanceTree)
+			
+			if expanded[inst.Parent] then
+				local index = table.find(rendered, inst.Parent)
+				expand(index)
+				expand(index)
+			end
+			
+			update:set(os.clock())
+		end)
+		
+		keyInstance.DescendantRemoving:Connect(function(instance)
+			
+			local rendered = unwrap(renderedElements)
+			
+			if table.find(rendered, instance) == nil then return end
+			table.remove(rendered, table.find(rendered, instance))
+			
+			renderedElements:set(rendered, true)
+			update:set(os.clock())
+		end)
+	end
+	
 	local InstanceTree = List {
 		
 		MinItems = 1,
@@ -198,21 +240,29 @@ local function InstanceTree(props: InstanceTree)
 		StreamIn = function(index)
 			
 			local element = Computed(function()
-				return unwrap(renderedElements)[index] or FALLBACK
+				unwrap(update)
+				return unwrap(renderedElements)[unwrap(index)] or FALLBACK
 			end)
 			local expandable = Computed(function()
+				unwrap(update)
 				return #unwrap(element):GetChildren() > 0
 			end)
 			local isSelected = Computed(function()
+				unwrap(update)
 				return table.find(unwrap(selected), unwrap(element)) ~= nil
 			end)
 			
 			return Button {
 				
-				Name = Computed(function() return unwrap(element).Name end),
+				Name = Computed(function()
+					unwrap(update)
+					return unwrap(element).Name
+				end),
 				
 				Size = UDim2.new(1, 0, 0, ITEM_SIZE),
-				Position = UDim2.fromOffset(0, (index - 1) * ITEM_SIZE),
+				Position = Computed(function()
+					return UDim2.fromOffset(0, (unwrap(index)-1) * ITEM_SIZE)
+				end),
 				
 				BackgroundColor = Enum.StudioStyleGuideColor.Item,
 				BorderColor = Enum.StudioStyleGuideColor.Item,
@@ -222,13 +272,18 @@ local function InstanceTree(props: InstanceTree)
 				TextSize = 14,
 				Text = Computed(function() return unwrap(element).Name end),
 				
+				Visible = Computed(function() return unwrap(element) ~= FALLBACK end),
+				
 				XPadding = Computed(function()
 					return UDim2.fromOffset((unwrap(paddingInstanceTree)[unwrap(element)] or 0) * 20, 0)
 				end),
 				YPadding = UDim2.new(),
 				
 				[OnEvent "Activated"] = function() select(unwrap(element)) end,
-				[OnEvent "MouseButton2Down"] = function() select(unwrap(element)) end,
+				[OnEvent "MouseButton2Down"] = function()
+					if unwrap(isSelected) == false then select(unwrap(element)) end
+					if props.OnRightClick then props.OnRightClick() end
+				end,
 				[Children] = {
 					
 					Image {
@@ -253,7 +308,7 @@ local function InstanceTree(props: InstanceTree)
 						Active = expandable,
 						
 						[OnEvent "Activated"] = function()
-							expand(index)
+							expand(unwrap(index))
 							
 						end
 						

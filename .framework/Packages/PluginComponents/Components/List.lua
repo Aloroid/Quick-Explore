@@ -46,7 +46,8 @@ local function List(props: List)
 	local maxItems = props.MaxItems or math.huge
 	local minItems = props.MinItems or 0
 	
-	local streamed = setmetatable({}, {__mode = "vs"})
+	local streamed = {}
+	local streamedStates = {}
 	
 	local absoluteSize = Value(Vector2.new())
 	local absoluteCanvasSize = Value(Vector2.new())
@@ -70,46 +71,47 @@ local function List(props: List)
 		-- Determines the indexes to render it for.
 		local areaMin, areaMax = currentCanvasPosition, currentCanvasPosition + currentAbsoluteSize
 		
-		local minIndex = math.clamp(math.floor(areaMin.Y / currentItemSize) - 4, minItems, maxItems)
-		local maxIndex = math.clamp(math.ceil(areaMax.Y / currentItemSize) + 4, minItems, maxItems)
+		local minIndex = math.clamp(math.floor(areaMin.Y / currentItemSize) - 2, minItems, maxItems)
+		local maxIndex = math.clamp(math.ceil(areaMax.Y / currentItemSize) + 2, minItems, maxItems)
 		
 		--print(minIndex, maxIndex)
 		
 		return {minIndex, maxIndex}
 		
 	end)
+	local totalItems = Computed(function()
+		local currentAbsoluteSize = unwrap(absoluteSize) or Vector2.zero
+		local currentItemSize = unwrap(itemSize)
+		
+		return currentAbsoluteSize.Y / currentItemSize + 4
+	end)
 	
 	local items = Computed(function()
 		
-		local indexes = unwrap(itemsIndexes)
-		local min, max = indexes[1], indexes[2]
+		local itemIndexes = unwrap(itemsIndexes)
+		local itemsToRender = unwrap(totalItems)
+		local minIndex = itemIndexes[1]-1
 		
-		local newStreamed = {}
-		
-		for index = min, max do
-			local streamedObject = streamed[index]
+		for i = 1, math.max(#streamed, itemsToRender) do
 			
-			if streamedObject == nil then
-				streamedObject = unwrap(streamIn)(index)
-				--print("created", index)
-				streamed[index] = streamedObject
+			if not streamed[i] then
+				local index = Value(minIndex + i)
+				
+				streamedStates[i] = index
+				streamed[i] = streamIn(index)
+			elseif streamed[i] and i > itemsToRender then
+				streamedStates[i] = nil
+				
+				streamed[i]:Destroy()
+				streamed[i] = nil
+			else
+				streamedStates[i]:set(minIndex + i)
 				
 			end
 			
-			newStreamed[index] = streamedObject
-			
 		end
 		
-		for index, item in streamed do
-			
-			if newStreamed[index] == nil then
-				item:Destroy()
-				streamed[index] = nil
-			end
-			
-		end
-		
-		return newStreamed
+		return streamed
 		
 	end)
 	

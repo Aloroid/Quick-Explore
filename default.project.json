@@ -4,7 +4,7 @@
     "$className": "DataModel",
 
     "ServerStorage": {
-      "HeavyFramework": {
+      "Plugin": {
         "$path": "src",
         
         "HeavyFramework": {

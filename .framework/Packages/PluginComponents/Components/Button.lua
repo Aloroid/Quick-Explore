@@ -92,7 +92,7 @@ local function Button(props: Button)
 	local XPadding = props.XPadding
 	local YPadding = props.YPadding
 	
-	local guideModifier = guideState(false, disabled, pressed, hovering)
+	local guideModifier = guideState(selected, disabled, pressed, hovering)
 	local backgroundStyle = props.BackgroundColor or Computed(function()
 		return
 			if unwrap(disabled) then Enum.StudioStyleGuideColor.InputFieldBackground

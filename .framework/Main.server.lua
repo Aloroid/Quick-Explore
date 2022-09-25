@@ -19,9 +19,10 @@ assert(Tests, "Unable to find tests")
 local HeavyTest = require(Packages.HeavyTest)
 
 -- Makes sure that Packages run fine
-HeavyTest.fancyPrint(HeavyTest.findAndRun({Packages}, {searchDescendants = true}))
+--HeavyTest.findAndRun({Packages}, {searchDescendants = true})
+--HeavyTest.fancyPrint()
 -- Make sure that core services is properly running and isn't broken.
 local Results = HeavyTest.findAndRun({Tests, PluginTests}, {suffix = ""})
 
 
-HeavyTest.fancyPrint(Results)
+--HeavyTest.fancyPrint(Results)
