@@ -130,7 +130,7 @@ local function InstanceButton(props: InstanceButton)
 		YPadding = UDim2.new(),
 		
 		[OnEvent "MouseButton1Down"] = function() select(unwrap(index)) end,
-		[OnEvent "MouseButton2Down"] = function()
+		[OnEvent "MouseButton2Up"] = function()
 			if unwrap(isSelected) ~= true then select(unwrap(index)) end
 		end,
 		
