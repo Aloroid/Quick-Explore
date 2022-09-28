@@ -54,11 +54,11 @@ end
 
 function PluginService:Init()
 	
-	local DockWidget = plugin:CreateDockWidgetPluginGui("DockWidget", DockWidgetPluginGuiInfo.new(Enum.InitialDockState.Float, false, false, 200, 300, 200, 300))
+	local DockWidget = plugin:CreateDockWidgetPluginGui("DockWidget", DockWidgetPluginGuiInfo.new(Enum.InitialDockState.Float, false, false, 232, 300, 232, 300))
 	local Toolbar = plugin:CreateToolbar("QuickExplore")
 	local Button = Toolbar:CreateButton("b", "Opens Quick Explorer", "", "Open Quick Explorer")
 	local PluginMenu = plugin:CreatePluginMenu("Menu", "Quick Actions")
-	local disableSelection = Value(false)
+	local disableSelection = Value(true)
 	
 	DockWidget.Name = "QuickExplorer"
 	DockWidget.Title = "Quick Explorer"
@@ -189,14 +189,69 @@ function PluginService:Init()
 	end)
 	
 	Observer(Selected):onChange(function()
-		if #Selected:get() > 0 then
-			DockWidget.Title = string.format("Quick Explorer (%i selected)", #Selected:get())
+		
+		local length = 0
+		for _ in Selected:get() do
+			length += 1
+		end
+		
+		if length > 0 then
+			DockWidget.Title = string.format("Quick Explorer (%i selected)", length)
 		else
 			DockWidget.Title = "Quick Explorer"
 		end
 		
 		if disableSelection:get() == false then
-			Selection:set(Selected:get())
+			
+			if length > 3000 then
+				warn("Too many selections to reconcile without crashing studio.")
+				return
+			end
+			
+			local newSelectionArray = table.create(length)
+			local totalParts = 0
+			local MAX_PARTS = 1500
+			
+			for inst in Selected:get() do
+				
+				if inst:IsA("Part") or inst:IsA("Model") then
+					
+					if totalParts > MAX_PARTS then
+						continue
+					end
+					
+					totalParts += 1
+					if totalParts > MAX_PARTS then
+						warn("There are too many parts selected or too many objects that have a part as a descendant.")
+					end
+					
+				end
+				
+				local stop = false
+				for _, descendant in inst:GetDescendants() do
+					if descendant:IsA("Part") or descendant:IsA("Model") then
+					
+						if totalParts > MAX_PARTS then
+							stop = true
+							break
+						end
+						
+						totalParts += 1
+						if totalParts > MAX_PARTS then
+							warn("There are too many parts selected or too many objects that have a part as a descendant.")
+							
+						end
+						
+					end
+					
+				end
+				if stop then continue end
+				
+				table.insert(newSelectionArray, inst)
+				
+			end
+			
+			Selection:Set(newSelectionArray)
 		end
 	end)
 	
