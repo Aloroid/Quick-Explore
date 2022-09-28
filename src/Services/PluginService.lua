@@ -1,3 +1,4 @@
+--TODO: Refactor this code.
 local ChangeHistoryService = game:GetService("ChangeHistoryService")
 local Selection = game:GetService("Selection")
 
@@ -65,17 +66,17 @@ function PluginService:Init()
 	PluginMenu:AddNewAction("Duplicate", "Duplicate").Triggered:Connect(function()
 		ChangeHistoryService:SetWaypoint("Duplicating")
 		local copies = {}
-		for _, inst in Selected:get() do
+		for inst in Selected:get() do
 			local copy = inst:Clone()
 			copy.Parent = inst.Parent
-			table.insert(copies, copy)
+			copies[copy] = true
 		end
 		Selected:set(copies)
 		ChangeHistoryService:SetWaypoint("Duped")
 	end)
 	PluginMenu:AddNewAction("Delete", "Delete").Triggered:Connect(function()
 		ChangeHistoryService:SetWaypoint("Deleting")
-		for _, object in Selected:get() do
+		for object in Selected:get() do
 			object.Parent = nil
 		end
 		ChangeHistoryService:SetWaypoint("Deleted")
@@ -89,21 +90,36 @@ function PluginService:Init()
 	PluginMenu:AddNewAction("Insert", "Insert Part").Triggered:Connect(function()
 		ChangeHistoryService:SetWaypoint("Inserting Part")
 		local copies = {}
-		for _, inst in Selected:get() do
+		for inst in Selected:get() do
 			local copy = Instance.new("Part")
 			copy.Parent = inst
-			table.insert(copies, copy)
+			
+			copies[copy] = true
 		end
 		Selected:set(copies)
 		ChangeHistoryService:SetWaypoint("Inserted")
 	end)
 	PluginMenu:AddSeparator()
 	PluginMenu:AddNewAction("SaveToFile", "Save to File").Triggered:Connect(function()
-		Selection:Set(Selected:get())
+		
+		local newSelectionArray = table.create(1000)
+		for inst in Selected:get() do
+			table.insert(newSelectionArray, inst)
+			
+		end
+		
+		Selection:Set(newSelectionArray)
 		plugin:PromptSaveSelection()
 	end)
 	PluginMenu:AddNewAction("SaveToRoblox", "Save to Roblox").Triggered:Connect(function()
-		Selection:Set(Selected:get())
+		
+		local newSelectionArray = table.create(1000)
+		for inst in Selected:get() do
+			table.insert(newSelectionArray, inst)
+			
+		end
+		Selection:Set(newSelectionArray)
+		
 		plugin:SaveSelectedToRoblox()
 	end)
 	
@@ -172,14 +188,6 @@ function PluginService:Init()
 		Button:SetActive(DockWidget.Enabled)
 	end)
 	
-	Observer(disableSelection):onChange(function()
-		if disableSelection:get() == false then
-			Selection:Add(Selected:get())
-			Selected:set(Selection:Get())
-		end
-		
-	end)
-	
 	Observer(Selected):onChange(function()
 		if #Selected:get() > 0 then
 			DockWidget.Title = string.format("Quick Explorer (%i selected)", #Selected:get())
@@ -190,12 +198,6 @@ function PluginService:Init()
 		if disableSelection:get() == false then
 			Selection:set(Selected:get())
 		end
-	end)
-	
-	Selection.SelectionChanged:Connect(function()
-		
-		Selected:set(Selection:get())
-		
 	end)
 	
 end
