@@ -28,12 +28,14 @@ local COMPONENT_ONLY_PROPERTIES = {
 	
 }
 
+type CanBeState<T> = Fusion.CanBeState<T>
+type Value<T> = Fusion.Value<T>
 export type List = {
 	ItemSize: Fusion.CanBeState<number>,
 	
-	StreamIn: (index: number) -> Instance,
-	MaxItems: Fusion.CanBeState<number>?,
-	MinItems: Fusion.CanBeState<number>?,
+	StreamIn: (index: Value<number>) -> Instance,
+	MaxItems: CanBeState<number>?,
+	MinItems: CanBeState<number>?,
 	--StreamOut: (object: Instance, index: number) -> nil,
 	
 	[any]: any
